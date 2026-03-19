@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+sqlalchemy
+pydantic-settings
+python-socketio
+redis
+psycopg2-binary
+python-jose[cryptography]
+passlib[bcrypt]
+python-multipart
+aioredis
