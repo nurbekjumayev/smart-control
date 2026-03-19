@@ -1,0 +1,35 @@
+databases:
+  - name: smart-db
+    databaseName: smartdb
+    user: smartuser
+    plan: free # Beepul Postgres
+    region: frankfurt
+
+services:
+  # 1. FastAPI (Backend API)
+  - type: web
+    name: smart-backend
+    env: python
+    region: frankfurt
+    plan: free
+    buildCommand: "cd backend && pip install -r requirements.txt"
+    startCommand: "cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT"
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: smart-db
+          property: connectionString
+
+  # 2. Telegram Bot (Background Service)
+  - type: worker
+    name: smart-bot
+    env: python
+    region: frankfurt
+    plan: free
+    buildCommand: "cd bot && pip install -r requirements.txt"
+    startCommand: "cd bot && python main.py"
+    envVars:
+      - key: BOT_TOKEN
+        value: "Sizning_Telegram_Bot_Tokeningiz" # Buni Render web panelidan o'zgartirasiz!
+      - key: API_URL
+        value: "https://smart-backend.onrender.com" # Backend urli
