@@ -43,7 +43,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: './frontend/dist'
+          path: 'frontend/dist' # Added correctly relative to root
 
   deploy:
     environment:
