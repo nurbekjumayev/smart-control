@@ -10,13 +10,13 @@ class User(BaseModel):
 
 # Local "DB" for simulation
 USERS = [
-    User(id="u1", name="Alisher Navoiy", role="Manager", energy_level=45, avatar="https://api.dicebear.com/7.x/avataaars/svg?seed=Alisher"),
-    User(id="u2", name="Bobur Mirzo", role="Senior", energy_level=85, avatar="https://api.dicebear.com/7.x/avataaars/svg?seed=Bobur"),
-    User(id="u3", name="Amir Temur", role="Senior", energy_level=20, avatar="https://api.dicebear.com/7.x/avataaars/svg?seed=Amir"),
-    User(id="u4", name="Ulugbek Mirzo", role="Junior", energy_level=65, avatar="https://api.dicebear.com/7.x/avataaars/svg?seed=Ulugbek"),
-    User(id="u5", name="Mashrab", role="Junior", energy_level=10, avatar="https://api.dicebear.com/7.x/avataaars/svg?seed=Mashrab"),
-    User(id="u6", name="Zulfiya", role="Senior", energy_level=90, avatar="https://api.dicebear.com/7.x/avataaars/svg?seed=Zulfiya"),
-    User(id="u7", name="Gofur Gulyom", role="Junior", energy_level=30, avatar="https://api.dicebear.com/7.x/avataaars/svg?seed=Gofur"),
+    User(id="u1", name="Xamrayev Omon", role="Manager", energy_level=0, avatar="https://api.dicebear.com/7.x/avataaars/svg?seed=Omon"),
+    User(id="u2", name="Jumayev Nurbek", role="Manager", energy_level=0, avatar="https://api.dicebear.com/7.x/avataaars/svg?seed=Nurbek"),
+    User(id="u3", name="Qosimov Elbek", role="Senior", energy_level=0, avatar="https://api.dicebear.com/7.x/avataaars/svg?seed=Elbek"),
+    User(id="u4", name="Xojibayev Javoxit", role="Junior", energy_level=0, avatar="https://api.dicebear.com/7.x/avataaars/svg?seed=Javoxit"),
+    User(id="u5", name="Ismoilov Xasan", role="Junior", energy_level=0, avatar="https://api.dicebear.com/7.x/avataaars/svg?seed=Xasan"),
+    User(id="u6", name="Xo'jamqulov Baxtiyor", role="Junior", energy_level=0, avatar="https://api.dicebear.com/7.x/avataaars/svg?seed=Baxtiyor"),
+    User(id="u7", name="Ismatov Temur", role="Junior", energy_level=0, avatar="https://api.dicebear.com/7.x/avataaars/svg?seed=Temur"),
 ]
 
 def find_best_helper(exclude_id: str) -> Optional[User]:
