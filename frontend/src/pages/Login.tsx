@@ -20,9 +20,11 @@ export function Login() {
 
     // Simulate API call for login
     setTimeout(() => {
-      // Find user simulation (Here we use telegramId as username for demo)
-      const user = users.find(u => u.name.toLowerCase().includes(telegramId.toLowerCase()));
-      if (user && password === '123') { // Hardware token/password simulation
+      // Flexible login: search case-insensitive in user names
+      const searchStr = telegramId.toLowerCase();
+      const user = users.find(u => u.name.toLowerCase().includes(searchStr));
+      
+      if (user && password === '123') { 
         login(user);
         navigate('/');
       } else {
