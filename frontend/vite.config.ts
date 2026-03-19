@@ -8,4 +8,5 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
+  base: '/smart-control/', // GitHub Pages uchun majburiy manzil!
 })
