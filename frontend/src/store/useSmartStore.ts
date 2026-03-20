@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
 
 export type UserRole = 'Manager' | 'Senior' | 'Junior'
 
@@ -44,7 +45,9 @@ interface SmartState {
   findBestHelper: (excludeId: string) => User | null
 }
 
-export const useSmartStore = create<SmartState>((set, get) => ({
+export const useSmartStore = create<SmartState>()(
+  persist(
+    (set, get) => ({
   currentUser: null,
   users: [
     { id: 'u1', name: 'Xamrayev Omon', role: 'Manager', energyLevel: 0, avatar: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=Omon&gender=male' },
@@ -126,4 +129,7 @@ export const useSmartStore = create<SmartState>((set, get) => ({
       user.energyLevel < min.energyLevel ? user : min
     , eligibleSpecialists[0])
   }
+}), {
+  name: 'smart-auth-storage',
+  partialize: (state) => ({ currentUser: state.currentUser })
 }))
