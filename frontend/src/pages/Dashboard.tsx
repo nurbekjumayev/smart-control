@@ -67,6 +67,7 @@ export function Dashboard() {
       isRisk: false
     })
 
+    await fetchTasks() // <--- Yangi qo'shilgan qatlam!
     setIsModalOpen(false)
     setTaskTitle('')
     setTaskAssignee('')
