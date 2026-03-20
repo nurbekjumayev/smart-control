@@ -20,16 +20,18 @@ services:
           name: smart-db
           property: connectionString
 
-  # 2. Telegram Bot (Background Service)
-  - type: worker
+  # 2. Telegram Bot (Web Service version for Free Tier)
+  - type: web
     name: smart-bot
     env: python
     region: frankfurt
     plan: free
     buildCommand: "cd bot && pip install -r requirements.txt"
-    startCommand: "cd bot && python main.py"
+    startCommand: "cd bot && python main.py" # Bot needs to listen to a dummy port if Render requires it
     envVars:
       - key: BOT_TOKEN
-        value: "Sizning_Telegram_Bot_Tokeningiz" # Buni Render web panelidan o'zgartirasiz!
+        sync: false
+      - key: PORT
+        value: "10000"
       - key: API_URL
-        value: "https://smart-backend.onrender.com" # Backend urli
+        value: "https://smart-backend.onrender.com"
