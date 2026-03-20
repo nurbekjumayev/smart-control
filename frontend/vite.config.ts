@@ -8,5 +8,5 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
-  base: '/', // Vercel asosan shuni talab qiladi
+  base: '/smart-control/',
 })
