@@ -37,6 +37,7 @@ interface SmartState {
   
   // Actions
   login: (user: User) => void
+  addTask: (task: Task) => void
   updateTaskStatus: (taskId: string, status: Task['status']) => void
   addHelpRequest: (request: HelpRequest) => void
   acceptHelpRequest: (requestId: string) => void
@@ -61,6 +62,16 @@ export const useSmartStore = create<SmartState>((set, get) => ({
   helpRequests: [],
   
   login: (user: User) => set({ currentUser: user }),
+  addTask: (task: Task) => set((state) => {
+    const updatedTasks = [...state.tasks, task]
+    const newUserEnergy = state.users.map(user => {
+      const userTasks = updatedTasks.filter(t => t.assignedTo === user.id && t.status === 'InProgress')
+      const helperTasks = updatedTasks.filter(t => t.helperId === user.id && t.status === 'InProgress')
+      const newEnergy = Math.min(100, (userTasks.length * 25) + (helperTasks.length * 15))
+      return { ...user, energyLevel: newEnergy }
+    })
+    return { tasks: updatedTasks, users: newUserEnergy }
+  }),
   updateTaskStatus: (taskId: string, status: Task['status']) => set((state) => {
     const updatedTasks = state.tasks.map((t: Task) => {
       if (t.id === taskId) {
