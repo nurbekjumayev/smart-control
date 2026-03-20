@@ -293,7 +293,7 @@ export function Dashboard() {
                   Bekor qilish
                 </button>
                 <button 
-                  disabled={!suggestedHelper}
+                  disabled={!selectedHelperId}
                   onClick={confirmHelpRequest}
                   className="flex-1 py-3 bg-cyan-600 hover:bg-cyan-500 disabled:bg-slate-800 disabled:text-slate-600 text-white rounded-xl font-bold transition-all"
                 >
