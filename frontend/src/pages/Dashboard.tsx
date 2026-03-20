@@ -19,9 +19,15 @@ const statusMap = {
 }
 
 export function Dashboard() {
-  const { users, tasks, currentUser, findBestHelper, addHelpRequest } = useSmartStore()
+  const { users, tasks, currentUser, findBestHelper, addHelpRequest, addTask } = useSmartStore()
   const [requestHelpForTask, setRequestHelpForTask] = React.useState<string | null>(null)
   const [suggestedHelper, setSuggestedHelper] = React.useState<User | null>(null)
+  
+  // New Task Modal state
+  const [isModalOpen, setIsModalOpen] = React.useState(false)
+  const [taskTitle, setTaskTitle] = React.useState('')
+  const [taskPriority, setTaskPriority] = React.useState<Task['priority']>('Medium')
+  const [taskAssignee, setTaskAssignee] = React.useState('')
 
   const handleRequestHelp = (taskId: string) => {
     if (!currentUser) return
@@ -44,6 +50,25 @@ export function Dashboard() {
     }
   }
 
+  const handleAddTask = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!taskTitle || !taskAssignee) return
+
+    addTask({
+      id: `t${Date.now()}`,
+      title: taskTitle,
+      status: 'Todo',
+      priority: taskPriority,
+      assignedTo: taskAssignee,
+      deadline: new Date(Date.now() + 86400000).toISOString(),
+      isRisk: false
+    })
+
+    setIsModalOpen(false)
+    setTaskTitle('')
+    setTaskAssignee('')
+  }
+
   return (
     <div className="space-y-12">
       {/* Header Section */}
@@ -57,7 +82,10 @@ export function Dashboard() {
             <Users className="w-5 h-5 text-indigo-400" />
             <span>Xodimlar ({users.length})</span>
           </button>
-          <button className="flex items-center gap-2 px-6 py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl shadow-lg shadow-cyan-900/40 neon-glow transition-all font-bold">
+          <button 
+            onClick={() => setIsModalOpen(true)}
+            className="flex items-center gap-2 px-6 py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl shadow-lg shadow-cyan-900/40 neon-glow transition-all font-bold"
+          >
             <Plus className="w-5 h-5 text-white/90" />
             <span>Yangi Vazifa</span>
           </button>
@@ -264,6 +292,158 @@ export function Dashboard() {
                   So'rov yuborish
                 </button>
               </div>
+            </motion.div>
+          </div>
+        )}
+
+        {/* Global Task Creation Modal */}
+        {isModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative w-full max-w-lg glass-card p-8 border-slate-800 shadow-2xl"
+            >
+              <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
+                <Plus className="text-cyan-400" /> Yangi Vazifa Yaratish
+              </h2>
+              
+              <form onSubmit={handleAddTask} className="space-y-6">
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">Vazifa nomi</label>
+                  <input 
+                    autoFocus
+                    type="text"
+                    required
+                    value={taskTitle}
+                    onChange={(e) => setTaskTitle(e.target.value)}
+                    placeholder="Vazifa mavzusini yozing..."
+                    className="w-full bg-slate-900 border border-slate-700 rounded-xl py-3 px-4 text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/50 transition-all font-medium"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">Ustuvorlik</label>
+                    <select 
+                      value={taskPriority}
+                      onChange={(e) => setTaskPriority(e.target.value as any)}
+                      className="w-full bg-slate-900 border border-slate-700 rounded-xl py-3 px-4 text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/50 font-bold"
+                    >
+                      <option value="Low">Past (Low)</option>
+                      <option value="Medium">O'rta (Medium)</option>
+                      <option value="High">Yuqori (High)</option>
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">Mas'ul xodim</label>
+                    <select 
+                      required
+                      value={taskAssignee}
+                      onChange={(e) => setTaskAssignee(e.target.value)}
+                      className="w-full bg-slate-900 border border-slate-700 rounded-xl py-3 px-4 text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/50 font-bold"
+                    >
+                      <option value="">Tanlang...</option>
+                      {users.map(u => (
+                        <option key={u.id} value={u.id}>{u.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="flex gap-3 pt-4">
+                  <button 
+                    type="button"
+                    onClick={() => setIsModalOpen(false)}
+                    className="flex-1 bg-slate-800 hover:bg-slate-700 text-white font-bold py-3 rounded-xl transition-all"
+                  >
+                    Bekor qilish
+                  </button>
+                  <button 
+                    type="submit"
+                    className="flex-1 bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-cyan-900/20 active:scale-95"
+                  >
+                    Yaratish
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+
+        {/* Global Task Creation Modal */}
+        {isModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative w-full max-w-lg glass-card p-8 border-slate-800 shadow-2xl"
+            >
+              <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
+                <Plus className="text-cyan-400" /> Yangi Vazifa Yaratish
+              </h2>
+              
+              <form onSubmit={handleAddTask} className="space-y-6">
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">Vazifa nomi</label>
+                  <input 
+                    autoFocus
+                    type="text"
+                    required
+                    value={taskTitle}
+                    onChange={(e) => setTaskTitle(e.target.value)}
+                    placeholder="Vazifa mavzusini yozing..."
+                    className="w-full bg-slate-900 border border-slate-700 rounded-xl py-3 px-4 text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/50 transition-all font-medium"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">Ustuvorlik</label>
+                    <select 
+                      value={taskPriority}
+                      onChange={(e) => setTaskPriority(e.target.value as any)}
+                      className="w-full bg-slate-900 border border-slate-700 rounded-xl py-3 px-4 text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/50 font-bold"
+                    >
+                      <option value="Low">Past (Low)</option>
+                      <option value="Medium">O'rta (Medium)</option>
+                      <option value="High">Yuqori (High)</option>
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">Mas'ul xodim</label>
+                    <select 
+                      required
+                      value={taskAssignee}
+                      onChange={(e) => setTaskAssignee(e.target.value)}
+                      className="w-full bg-slate-900 border border-slate-700 rounded-xl py-3 px-4 text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/50 font-bold"
+                    >
+                      <option value="">Tanlang...</option>
+                      {users.map(u => (
+                        <option key={u.id} value={u.id}>{u.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="flex gap-3 pt-4">
+                  <button 
+                    type="button"
+                    onClick={() => setIsModalOpen(false)}
+                    className="flex-1 bg-slate-800 hover:bg-slate-700 text-white font-bold py-3 rounded-xl transition-all"
+                  >
+                    Bekor qilish
+                  </button>
+                  <button 
+                    type="submit"
+                    className="flex-1 bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-cyan-900/20 active:scale-95"
+                  >
+                    Yaratish
+                  </button>
+                </div>
+              </form>
             </motion.div>
           </div>
         )}
