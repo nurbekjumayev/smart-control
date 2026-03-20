@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { apiService } from '../services/api'
 
 export type UserRole = 'Manager' | 'Senior' | 'Junior'
 
@@ -7,7 +8,7 @@ export interface User {
   id: string
   name: string
   role: UserRole
-  energyLevel: number // 0-100 (Workload %)
+  energyLevel: number
   avatar: string
 }
 
@@ -16,8 +17,8 @@ export interface Task {
   title: string
   status: 'Backlog' | 'Todo' | 'InProgress' | 'Review' | 'Done'
   priority: 'High' | 'Medium' | 'Low'
-  assignedTo: string // userId
-  helperId?: string // userId
+  assignedTo: string
+  helperId?: string
   deadline: string
   isRisk: boolean
 }
@@ -35,101 +36,89 @@ interface SmartState {
   users: User[]
   tasks: Task[]
   helpRequests: HelpRequest[]
-  
-  // Actions
   login: (user: User) => void
-  addTask: (task: Task) => void
-  updateTaskStatus: (taskId: string, status: Task['status']) => void
+  fetchTasks: () => Promise<void>
+  addTask: (task: Task) => Promise<void>
+  updateTaskStatus: (taskId: string, status: Task['status']) => Promise<void>
   addHelpRequest: (request: HelpRequest) => void
   acceptHelpRequest: (requestId: string) => void
   findBestHelper: (excludeId: string) => User | null
 }
 
+const INITIAL_USERS: User[] = [
+  { id: 'u1', name: 'Xamrayev Omon', role: 'Manager', energyLevel: 0, avatar: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=Omon&gender=male' },
+  { id: 'u2', name: 'Jumayev Nurbek', role: 'Manager', energyLevel: 0, avatar: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=Nurbek&gender=male' },
+  { id: 'u3', name: 'Qosimov Elbek', role: 'Senior', energyLevel: 0, avatar: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=Elbek&gender=male' },
+  { id: 'u4', name: 'Xojibayev Javoxit', role: 'Junior', energyLevel: 0, avatar: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=Javoxit&gender=male' },
+  { id: 'u5', name: 'Ismoilov Xasan', role: 'Junior', energyLevel: 0, avatar: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=Xasan&gender=male' },
+  { id: 'u6', name: 'Xo\'jamqulov Baxtiyor', role: 'Junior', energyLevel: 0, avatar: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=Baxtiyor&gender=male' },
+  { id: 'u7', name: 'Ismatov Temur', role: 'Junior', energyLevel: 0, avatar: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=Temur&gender=male' }
+]
+
 export const useSmartStore = create<SmartState>()(
   persist(
     (set, get) => ({
-  currentUser: null,
-  users: [
-    { id: 'u1', name: 'Xamrayev Omon', role: 'Manager', energyLevel: 0, avatar: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=Omon&gender=male' },
-    { id: 'u2', name: 'Jumayev Nurbek', role: 'Manager', energyLevel: 0, avatar: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=Nurbek&gender=male' },
-    { id: 'u3', name: 'Qosimov Elbek', role: 'Senior', energyLevel: 0, avatar: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=Elbek&gender=male' },
-    { id: 'u4', name: 'Xojibayev Javoxit', role: 'Junior', energyLevel: 0, avatar: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=Javoxit&gender=male' },
-    { id: 'u5', name: 'Ismoilov Xasan', role: 'Junior', energyLevel: 0, avatar: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=Xasan&gender=male' },
-    { id: 'u6', name: 'Xo\'jamqulov Baxtiyor', role: 'Junior', energyLevel: 0, avatar: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=Baxtiyor&gender=male' },
-    { id: 'u7', name: 'Ismatov Temur', role: 'Junior', energyLevel: 0, avatar: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=Temur&gender=male' }
-  ],
-  tasks: [
-    { id: 't1', title: 'Ildiz server sozlamalari', status: 'InProgress', priority: 'High', assignedTo: 'u2', deadline: '2026-03-20T10:00:00Z', isRisk: false },
-    { id: 't2', title: 'Firewall qoidalari yangilash', status: 'Todo', priority: 'Medium', assignedTo: 'u3', deadline: '2026-03-21T18:00:00Z', isRisk: false }
-  ],
-  helpRequests: [],
-  
-  login: (user: User) => set({ currentUser: user }),
-  addTask: (task: Task) => set((state) => {
-    const updatedTasks = [...state.tasks, task]
-    const newUserEnergy = state.users.map(user => {
-      const userTasks = updatedTasks.filter(t => t.assignedTo === user.id && t.status === 'InProgress')
-      const helperTasks = updatedTasks.filter(t => t.helperId === user.id && t.status === 'InProgress')
-      const newEnergy = Math.min(100, (userTasks.length * 25) + (helperTasks.length * 15))
-      return { ...user, energyLevel: newEnergy }
-    })
-    return { tasks: updatedTasks, users: newUserEnergy }
-  }),
-  updateTaskStatus: (taskId: string, status: Task['status']) => set((state) => {
-    const updatedTasks = state.tasks.map((t: Task) => {
-      if (t.id === taskId) {
-        // Priority Lock: If moving to InProgress and task is High priority,
-        // we might need to pause others later.
-        return { ...t, status }
+      currentUser: null,
+      users: INITIAL_USERS,
+      tasks: [],
+      helpRequests: [],
+
+      login: (user: User) => set({ currentUser: user }),
+
+      fetchTasks: async () => {
+        try {
+          const apiTasks = await apiService.getTasks()
+          const mappedTasks: Task[] = apiTasks.map((t: any) => ({
+            id: t.id,
+            title: t.title,
+            status: t.status,
+            priority: t.priority,
+            assignedTo: t.assigned_to,
+            deadline: t.deadline,
+            isRisk: t.is_risk,
+            helperId: t.helper_id
+          }))
+          set({ tasks: mappedTasks })
+        } catch (err) { console.error(err) }
+      },
+
+      addTask: async (task: Task) => {
+        try {
+          await apiService.createTask(task)
+          set(state => ({ tasks: [...state.tasks, task] }))
+        } catch (err) { console.error(err) }
+      },
+
+      updateTaskStatus: async (taskId: string, status: Task['status']) => {
+        try {
+          const { currentUser } = get()
+          if (!currentUser) return
+          await apiService.updateTaskStatus(taskId, status, currentUser.id)
+          set(state => ({
+            tasks: state.tasks.map(t => t.id === taskId ? { ...t, status } : t)
+          }))
+        } catch (err) { console.error(err) }
+      },
+
+      addHelpRequest: (req: HelpRequest) => set(state => ({ helpRequests: [...state.helpRequests, req] })),
+      
+      acceptHelpRequest: (reqId: string) => set(state => {
+        const req = state.helpRequests.find(r => r.id === reqId)
+        if (!req) return state
+        return {
+          helpRequests: state.helpRequests.map(r => r.id === reqId ? { ...r, status: 'Accepted' } : r),
+          tasks: state.tasks.map(t => t.id === req.taskId ? { ...t, helperId: req.toUserId } : t)
+        }
+      }),
+
+      findBestHelper: (excludeId: string) => {
+        const specialists = get().users.filter(u => u.id !== excludeId && u.role !== 'Manager')
+        return specialists.length > 0 ? specialists[0] : null
       }
-      return t
-    })
-
-    // If the updated task is now InProgress and High priority, auto-pause other InProgress tasks for this user
-    const task = updatedTasks.find(t => t.id === taskId)
-    if (status === 'InProgress' && task?.priority === 'High') {
-      return {
-        tasks: updatedTasks.map(t => 
-          (t.id !== taskId && t.assignedTo === task.assignedTo && t.status === 'InProgress')
-            ? { ...t, status: 'Todo' as const } // Simulation of pause
-            : t
-        )
-      }
+    }),
+    {
+      name: 'smart-auth-storage',
+      partialize: (state) => ({ currentUser: state.currentUser })
     }
-
-    // Update user energy levels based on current tasks
-    const finalTasks = (status === 'InProgress' && task?.priority === 'High') 
-      ? updatedTasks.map(t => (t.id !== taskId && t.assignedTo === task.assignedTo && t.status === 'InProgress') ? { ...t, status: 'Todo' as const } : t)
-      : updatedTasks
-
-    const newUserEnergy = state.users.map(user => {
-      const userTasks = finalTasks.filter(t => t.assignedTo === user.id && t.status === 'InProgress')
-      const helperTasks = finalTasks.filter(t => t.helperId === user.id && t.status === 'InProgress')
-      // Simple formula: 20% per main task, 10% per help task
-      const newEnergy = Math.min(100, (userTasks.length * 25) + (helperTasks.length * 15))
-      return { ...user, energyLevel: newEnergy }
-    })
-
-    return { tasks: finalTasks, users: newUserEnergy }
-  }),
-  addHelpRequest: (req: HelpRequest) => set((state) => ({ helpRequests: [...state.helpRequests, req] })),
-  acceptHelpRequest: (reqId: string) => set((state) => {
-    const req = state.helpRequests.find((r: HelpRequest) => r.id === reqId)
-    if (!req) return state
-    return {
-      helpRequests: state.helpRequests.map((r: HelpRequest) => r.id === reqId ? { ...r, status: 'Accepted' } : r),
-      tasks: state.tasks.map((t: Task) => t.id === req.taskId ? { ...t, helperId: req.toUserId } : t)
-    }
-  }),
-  findBestHelper: (excludeId: string) => {
-    const state = get()
-    const eligibleSpecialists = state.users.filter((u: User) => u.id !== excludeId && u.role !== 'Manager')
-    if (eligibleSpecialists.length === 0) return null
-    return eligibleSpecialists.reduce((min: User, user: User) => 
-      user.energyLevel < min.energyLevel ? user : min
-    , eligibleSpecialists[0])
-  }
-}), {
-  name: 'smart-auth-storage',
-  partialize: (state) => ({ currentUser: state.currentUser })
-}))
+  )
+)

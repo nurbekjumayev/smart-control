@@ -19,9 +19,9 @@ const statusMap = {
 }
 
 export function Dashboard() {
-  const { users, tasks, currentUser, findBestHelper, addHelpRequest, addTask } = useSmartStore()
+  const { users, tasks, currentUser, findBestHelper, addHelpRequest, addTask, fetchTasks } = useSmartStore()
   const [requestHelpForTask, setRequestHelpForTask] = React.useState<string | null>(null)
-  const [suggestedHelper, setSuggestedHelper] = React.useState<User | null>(null)
+  const [selectedHelperId, setSelectedHelperId] = React.useState<string>('')
   
   // New Task Modal state
   const [isModalOpen, setIsModalOpen] = React.useState(false)
@@ -29,32 +29,35 @@ export function Dashboard() {
   const [taskPriority, setTaskPriority] = React.useState<Task['priority']>('Medium')
   const [taskAssignee, setTaskAssignee] = React.useState('')
 
+  React.useEffect(() => {
+    fetchTasks()
+  }, [])
+
   const handleRequestHelp = (taskId: string) => {
-    if (!currentUser) return
-    const helper = findBestHelper(currentUser.id)
     setRequestHelpForTask(taskId)
-    setSuggestedHelper(helper)
+    const best = findBestHelper(currentUser?.id || '')
+    if (best) setSelectedHelperId(best.id)
   }
 
   const confirmHelpRequest = () => {
-    if (requestHelpForTask && suggestedHelper && currentUser) {
+    if (requestHelpForTask && selectedHelperId && currentUser) {
       addHelpRequest({
         id: Math.random().toString(36).substr(2, 9),
         taskId: requestHelpForTask,
         fromUserId: currentUser.id,
-        toUserId: suggestedHelper.id,
+        toUserId: selectedHelperId,
         status: 'Pending'
       })
       setRequestHelpForTask(null)
-      alert(`Yordam so'rovi ${suggestedHelper.name}ga yuborildi!`)
+      alert(`Yordam so'rovi yuborildi!`)
     }
   }
 
-  const handleAddTask = (e: React.FormEvent) => {
+  const handleAddTask = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!taskTitle || !taskAssignee) return
 
-    addTask({
+    await addTask({
       id: `t${Date.now()}`,
       title: taskTitle,
       status: 'Todo',
@@ -262,20 +265,25 @@ export function Dashboard() {
                 Vazifa: <span className="text-white font-bold">{tasks.find(t => t.id === requestHelpForTask)?.title}</span>
               </div>
 
-              {suggestedHelper ? (
-                <div className="bg-slate-800/40 p-5 rounded-2xl border border-slate-700/50 space-y-3">
-                  <div className="text-xs text-slate-500 uppercase font-bold tracking-wider">Tizim tavsiya qilgan yordamchi:</div>
-                  <div className="flex items-center gap-4">
-                    <img src={suggestedHelper.avatar} className="w-12 h-12 rounded-xl" />
-                    <div>
-                      <div className="font-bold text-white">{suggestedHelper.name}</div>
-                      <div className="text-xs text-emerald-400 font-bold">Yuklama: {suggestedHelper.energyLevel}% (Minimal)</div>
-                    </div>
+              <div className="space-y-4">
+                <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">Yordamchi xodimni tanlang</label>
+                <select 
+                  value={selectedHelperId}
+                  onChange={(e) => setSelectedHelperId(e.target.value)}
+                  className="w-full bg-slate-900 border border-slate-700 rounded-xl py-3 px-4 text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/50 font-bold"
+                >
+                  <option value="">Tanlang...</option>
+                  {users.filter(u => u.id !== currentUser?.id && u.role !== 'Manager').map(u => (
+                    <option key={u.id} value={u.id}>{u.name} ({u.role})</option>
+                  ))}
+                </select>
+                {selectedHelperId && (
+                  <div className="flex items-center gap-3 p-3 bg-slate-800/40 rounded-xl border border-slate-700/50">
+                    <img src={users.find(u => u.id === selectedHelperId)?.avatar} className="w-10 h-10 rounded-lg" />
+                    <div className="text-sm font-bold text-emerald-400">Tanlangan: {users.find(u => u.id === selectedHelperId)?.name}</div>
                   </div>
-                </div>
-              ) : (
-                <div className="text-amber-400 font-bold italic">Afsuski, hozircha bosh bo'sh xodim topilmadi.</div>
-              )}
+                )}
+              </div>
 
               <div className="flex items-center gap-4 pt-4">
                 <button 
