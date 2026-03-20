@@ -1,24 +1,23 @@
-import datetime
+import hashlib
 import json
-import os
+import datetime
+from sqlalchemy.orm import Session
+from ..models.base import AuditLog
 
-LOG_FILE = "audit_log.jsonl"
-
-def log_action(user_id: str, action: str, details: dict, ip_address: str = "127.0.0.1"):
-    """
-    Logs an action to an immutable JSONL file.
-    In a real system, this would write to a write-once table in PostgreSQL.
-    """
-    log_entry = {
-        "timestamp": datetime.datetime.utcnow().isoformat(),
-        "user_id": user_id,
-        "action": action,
-        "details": details,
-        "ip_address": ip_address,
-        "hash": "---SIMULATED_IMMUTABLE_HASH---" 
-    }
+def log_action(user_id: str, action: str, details: dict, db: Session):
+    prev_log = db.query(AuditLog).order_by(AuditLog.id.desc()).first()
+    prev_hash = prev_log.hash if prev_log else "0"
     
-    with open(LOG_FILE, "a", encoding="utf-8") as f:
-        f.write(json.dumps(log_entry) + "\n")
+    # Create Immutable Hash
+    log_content = f"{user_id}{action}{json.dumps(details)}{prev_hash}"
+    current_hash = hashlib.sha256(log_content.encode()).hexdigest()
     
+    new_log = AuditLog(
+        user_id=user_id,
+        action=action,
+        details=json.dumps(details),
+        hash=current_hash
+    )
+    db.add(new_log)
+    db.commit()
     print(f"[AUDIT] {user_id} performed {action}")

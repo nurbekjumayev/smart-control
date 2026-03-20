@@ -1,16 +1,19 @@
-import axios from 'axios';
+import axios from 'axios'
 
-// @ts-ignore - Fallback for build types
-const API_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:8000';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
-export const api = axios.create({
+const api = axios.create({
   baseURL: API_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
+})
 
-// Add interceptors if needed (e.g., for JWT tokens)
+export const apiService = {
+  getTasks: () => api.get('/tasks/').then(r => r.data),
+  createTask: (task: any) => api.post('/tasks/', task).then(r => r.data),
+  updateTaskStatus: (taskId: string, status: string, userId: string) =>
+    api.patch(`/tasks/${taskId}/status?status=${status}&user_id=${userId}`).then(r => r.data),
+  getLogs: () => api.get('/audit/logs').then(r => r.data),
+}
+
 api.interceptors.request.use((config) => {
   // const token = localStorage.getItem('token');
   // if (token) {
@@ -18,3 +21,5 @@ api.interceptors.request.use((config) => {
   // }
   return config;
 });
+
+export default api
