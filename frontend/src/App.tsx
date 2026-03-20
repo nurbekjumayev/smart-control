@@ -1,6 +1,9 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { Dashboard } from './pages/Dashboard'
 import { Login } from './pages/Login'
+import { Tasks } from './pages/Tasks'
+import { Analytics } from './pages/Analytics'
+import { AuditLogs } from './pages/AuditLogs'
 import { Sidebar } from './components/Sidebar'
 import { Navbar } from './components/Navbar'
 import { useSmartStore } from './store/useSmartStore'
@@ -29,8 +32,10 @@ function App() {
                 <main className="flex-1 overflow-y-auto p-6 lg:p-10">
                   <Routes>
                     <Route path="/" element={<Dashboard />} />
-                    <Route path="/tasks" element={<div>Vazifalar Sahifasi (Tez orada...)</div>} />
-                    <Route path="/audit" element={<div>Audit Loglar (Tez orada...)</div>} />
+                    <Route path="/tasks" element={<Tasks />} />
+                    <Route path="/analytics" element={<Analytics />} />
+                    <Route path="/audit" element={<AuditLogs />} />
+                    <Route path="*" element={<Navigate to="/" replace />} />
                   </Routes>
                 </main>
               </div>
