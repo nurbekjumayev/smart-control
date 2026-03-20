@@ -47,13 +47,13 @@ interface SmartState {
 export const useSmartStore = create<SmartState>((set, get) => ({
   currentUser: null,
   users: [
-    { id: 'u1', name: 'Xamrayev Omon', role: 'Manager', energyLevel: 0, avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Omon' },
-    { id: 'u2', name: 'Jumayev Nurbek', role: 'Manager', energyLevel: 0, avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Nurbek' },
-    { id: 'u3', name: 'Qosimov Elbek', role: 'Senior', energyLevel: 0, avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Elbek' },
-    { id: 'u4', name: 'Xojibayev Javoxit', role: 'Junior', energyLevel: 0, avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Javoxit' },
-    { id: 'u5', name: 'Ismoilov Xasan', role: 'Junior', energyLevel: 0, avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Xasan' },
-    { id: 'u6', name: 'Xo\'jamqulov Baxtiyor', role: 'Junior', energyLevel: 0, avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Baxtiyor' },
-    { id: 'u7', name: 'Ismatov Temur', role: 'Junior', energyLevel: 0, avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Temur' }
+    { id: 'u1', name: 'Xamrayev Omon', role: 'Manager', energyLevel: 0, avatar: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=Omon&gender=male' },
+    { id: 'u2', name: 'Jumayev Nurbek', role: 'Manager', energyLevel: 0, avatar: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=Nurbek&gender=male' },
+    { id: 'u3', name: 'Qosimov Elbek', role: 'Senior', energyLevel: 0, avatar: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=Elbek&gender=male' },
+    { id: 'u4', name: 'Xojibayev Javoxit', role: 'Junior', energyLevel: 0, avatar: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=Javoxit&gender=male' },
+    { id: 'u5', name: 'Ismoilov Xasan', role: 'Junior', energyLevel: 0, avatar: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=Xasan&gender=male' },
+    { id: 'u6', name: 'Xo\'jamqulov Baxtiyor', role: 'Junior', energyLevel: 0, avatar: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=Baxtiyor&gender=male' },
+    { id: 'u7', name: 'Ismatov Temur', role: 'Junior', energyLevel: 0, avatar: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=Temur&gender=male' }
   ],
   tasks: [
     { id: 't1', title: 'Ildiz server sozlamalari', status: 'InProgress', priority: 'High', assignedTo: 'u2', deadline: '2026-03-20T10:00:00Z', isRisk: false },
